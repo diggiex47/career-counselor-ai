@@ -1,5 +1,5 @@
-import { chatRouter } from "./routers/chat";
-import { sessionRouter } from "./routers/session";
+import { chatRouter } from "./chat";
+import { sessionRouter } from "./session";
 import { createTRPCRouter } from "~/server/api/trpc";
 
 /** 
