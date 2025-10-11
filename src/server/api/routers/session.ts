@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -45,4 +46,45 @@ export const sessionRouter = createTRPCRouter({
       });
     }
   }),
+
+  // delete a chat session and all its messages for the current user.
+
+  deleteSession: protectedProcedure
+    .input(z.object({ sessionId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // First verify the session belongs to the current user
+        const session = await ctx.db.chatSession.findFirst({
+          where: {
+            id: input.sessionId,
+            userId: ctx.session.user.id, // security: ensure user owns the session
+          },
+        });
+
+        if (!session) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Chat session not found or you don't have permission to delete it",
+          });
+        }
+
+        // Delete the session (messages will be deleted automatically due to cascade)
+        await ctx.db.chatSession.delete({
+          where: {
+            id: input.sessionId,
+          },
+        });
+
+        return { success: true, deletedSessionId: input.sessionId };
+      } catch (e) {
+        console.error("Failed to delete session:", e);
+        if (e instanceof TRPCError) {
+          throw e;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete chat session",
+        });
+      }
+    }),
 });
