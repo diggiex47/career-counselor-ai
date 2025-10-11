@@ -47,7 +47,7 @@ model User {
     sessions      Session[]
 
     // A user can have many chat sessions
-    chatSessions  ChatSession[] // 👈 RENAMED for clarity: chatSessions instead of chatSession
+    chatSessions ChatSession[] // 👈 RENAMED for clarity: chatSessions instead of chatSession
 }
 
 model VerificationToken {
@@ -61,22 +61,23 @@ model VerificationToken {
 // --- OUR APPLICATION MODELS ---
 
 model ChatSession {
-    id        String    @id @default(cuid())
+    id        String   @id @default(cuid())
     userId    String
-    topic     String    @default("New Conversation")
-    createdAt DateTime  @default(now())
+    topic     String   @default("New Conversation")
+    createdAt DateTime @default(now())
 
-    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade) // 👈 FIX: 'User' changed to 'user'
-    messages  Message[]
+    user     User      @relation(fields: [userId], references: [id], onDelete: Cascade) // 👈 FIX: 'User' changed to 'user'
+    messages Message[]
 
     @@index([userId])
 }
 
 model Message {
-    id            String      @id @default(cuid())
-    content       String      @db.Text
-    createdAt     DateTime    @default(now())
-    role          String      // "user" or "assistant"
+    id        String   @id @default(cuid())
+    content   String   @db.Text
+    createdAt DateTime @default(now())
+    role      String // "user" or "assistant"
+    metadata  Json? // AI response metadata (model, tokens, etc.)
 
     chatSessionId String
     chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
