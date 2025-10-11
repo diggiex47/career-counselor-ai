@@ -2,9 +2,27 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // Temporarily disabled for UI/UX development
-  // TODO: Fix middleware authentication in production
-  console.log(`🔍 Middleware (disabled) for: ${request.nextUrl.pathname}`);
+  const { pathname } = request.nextUrl;
+  
+  // Allow public routes
+  const publicRoutes = ['/api/auth', '/auth/signin', '/auth/signup', '/'];
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  // Check for session token
+  const sessionToken = request.cookies.get('next-auth.session-token') || 
+                      request.cookies.get('__Secure-next-auth.session-token');
+
+  if (!sessionToken) {
+    // Redirect to sign in page
+    const signInUrl = new URL('/auth/signin', request.url);
+    signInUrl.searchParams.set('callbackUrl', request.url);
+    return NextResponse.redirect(signInUrl);
+  }
+
   return NextResponse.next();
 }
 

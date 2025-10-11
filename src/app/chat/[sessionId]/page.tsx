@@ -3,9 +3,9 @@
 
 import type { AppRouter } from "~/server/api/root";
 import type { TRPCClientErrorLike } from "@trpc/client";
-import { Send, User, LogOut, Settings } from "lucide-react";
+import { Send, User, LogOut, Settings, Bot, Sparkles } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -15,101 +15,121 @@ import { api } from "~/trpc/react";
 
 import Link from "next/link";
 
-// Typing indicator component
-function TypingIndicator() {
+// Enhanced typing indicator with smooth animations - Memoized for performance
+const TypingIndicator = React.memo(() => {
   return (
-    <div className="flex items-start gap-4">
-      <Avatar>
-        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-          AI
+    <div className="animate-in slide-in-from-left-5 flex items-start gap-4 duration-500">
+      <Avatar className="ring-2 ring-purple-200 ring-offset-2 transition-all duration-300">
+        <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 text-white shadow-lg">
+          <Bot className="h-4 w-4" />
         </AvatarFallback>
       </Avatar>
-      <div className="max-w-[75%] rounded-2xl bg-gray-100 px-4 py-3 dark:bg-gray-700">
-        <div className="flex items-center space-x-2">
+      <div className="max-w-[75%] rounded-2xl border border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 shadow-sm dark:border-gray-600 dark:from-gray-700 dark:to-gray-800">
+        <div className="flex items-center space-x-3">
           <div className="flex space-x-1">
-            <div className="typing-dot h-2 w-2 rounded-full bg-gray-500"></div>
-            <div className="typing-dot h-2 w-2 rounded-full bg-gray-500"></div>
-            <div className="typing-dot h-2 w-2 rounded-full bg-gray-500"></div>
+            <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-purple-500 [animation-delay:-0.3s]"></div>
+            <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-pink-500 [animation-delay:-0.15s]"></div>
+            <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-indigo-500"></div>
           </div>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            AI is typing...
-          </span>
+          <div className="flex items-center space-x-1">
+            <Sparkles className="h-3 w-3 animate-pulse text-purple-500" />
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+              AI is thinking...
+            </span>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+});
 
-// User profile dropdown component
-function UserProfileDropdown() {
+TypingIndicator.displayName = "TypingIndicator";
+
+// Enhanced user profile dropdown with smooth animations - Memoized for performance
+const UserProfileDropdown = React.memo(() => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 rounded-full p-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+        className="group flex items-center space-x-2 rounded-full p-1 transition-all duration-200 hover:scale-105 hover:bg-gray-100 dark:hover:bg-gray-800"
       >
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-blue-600 text-sm text-white">
-            U
+        <Avatar className="h-8 w-8 ring-2 ring-transparent transition-all duration-200 group-hover:ring-blue-200 group-hover:ring-offset-2">
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-semibold text-white shadow-lg">
+            <User className="h-4 w-4" />
           </AvatarFallback>
         </Avatar>
       </button>
 
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Enhanced backdrop with blur */}
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-10 bg-black/5 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Dropdown menu */}
-          <div className="absolute top-full right-0 z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-            <div className="border-b border-gray-200 px-4 py-2 dark:border-gray-700">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                User
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Authenticated User
-              </p>
+          {/* Enhanced dropdown menu with animations */}
+          <div className="animate-in slide-in-from-top-2 absolute top-full right-0 z-20 mt-2 w-56 rounded-xl border border-gray-200 bg-white/95 py-2 shadow-xl backdrop-blur-md duration-200 dark:border-gray-700 dark:bg-gray-800/95">
+            <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 font-semibold text-white">
+                    <User className="h-5 w-5" />
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Career Explorer
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Professional Growth Journey
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <Link
-              href="/profile"
-              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              onClick={() => setIsOpen(false)}
-            >
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </Link>
+            <div className="py-1">
+              <Link
+                href="/profile"
+                className="flex items-center px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-blue-400"
+                onClick={() => setIsOpen(false)}
+              >
+                <User className="mr-3 h-4 w-4" />
+                <span className="font-medium">Profile</span>
+              </Link>
 
-            <Link
-              href="/settings"
-              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              onClick={() => setIsOpen(false)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Link>
+              <Link
+                href="/settings"
+                className="flex items-center px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-blue-400"
+                onClick={() => setIsOpen(false)}
+              >
+                <Settings className="mr-3 h-4 w-4" />
+                <span className="font-medium">Settings</span>
+              </Link>
 
-            <Link
-              href="/api/auth/signout"
-              className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              onClick={() => setIsOpen(false)}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
-            </Link>
+              <div className="mt-1 border-t border-gray-200 pt-1 dark:border-gray-700">
+                <Link
+                  href="/api/auth/signout"
+                  className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <LogOut className="mr-3 h-4 w-4" />
+                  <span className="font-medium">Sign out</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </>
       )}
     </div>
   );
-}
+});
 
-// Format timestamp
+UserProfileDropdown.displayName = "UserProfileDropdown";
+
+// Format timestamp - Memoized for performance
 function formatTimestamp(date: Date) {
   const now = new Date();
   const messageDate = new Date(date);
@@ -137,27 +157,37 @@ export default function ChatPage() {
       { enabled: !!sessionId },
     );
 
-  const handleMutationSuccess = () => {
+  // Performance optimization: Memoize handlers to prevent unnecessary re-renders
+  const handleMutationSuccess = useCallback(() => {
     utils.chat.getMessages.invalidate({ chatSessionId: sessionId });
-  };
+  }, [utils.chat.getMessages, sessionId]);
 
-  const handleMutationError = (error: TRPCClientErrorLike<AppRouter>) => {
+  const handleMutationError = useCallback((error: TRPCClientErrorLike<AppRouter>) => {
     toast.error("Error sending message", {
       description: error.message,
     });
-  };
+  }, []);
 
   const sendMessageMutation = api.chat.sendMessage.useMutation({
     onSuccess: handleMutationSuccess,
     onError: handleMutationError,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
     sendMessageMutation.mutate({ chatSessionId: sessionId, content: input });
     setInput("");
-  };
+  }, [input, sendMessageMutation, sessionId]);
+
+  // Performance optimization: Memoize formatted messages to prevent unnecessary re-renders
+  const formattedMessages = useMemo(() => {
+    return messages?.map((message, index) => ({
+      ...message,
+      animationDelay: `${index * 100}ms`,
+      formattedTime: formatTimestamp(message.createdAt)
+    })) || [];
+  }, [messages]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -166,15 +196,30 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen flex-col">
-      {/* FIXED Header - Always stays at top */}
-      <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/95">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Career Counselor
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            AI-powered career guidance
-          </p>
+      {/* ENHANCED Header with gradient and animations */}
+      <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-200/50 bg-gradient-to-r from-white/95 via-blue-50/30 to-purple-50/30 p-4 shadow-lg backdrop-blur-md dark:border-gray-700/50 dark:from-gray-900/95 dark:via-gray-800/30 dark:to-gray-900/95">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-400 to-pink-400 opacity-30 blur-md"></div>
+              <Avatar className="relative h-10 w-10 shadow-lg ring-2 ring-white/50">
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 font-bold text-white">
+                  <Bot className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            <div>
+              <h2 className="bg-gradient-to-r from-gray-900 via-purple-800 to-indigo-800 bg-clip-text text-xl font-bold text-transparent dark:from-white dark:via-purple-200 dark:to-blue-200">
+                AI Career Counselor
+              </h2>
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  Ready to help with your career journey
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
         <UserProfileDropdown />
       </header>
@@ -193,47 +238,83 @@ export default function ChatPage() {
             </div>
           )}
 
-          {messages?.map((message) => (
+          {formattedMessages.map((message) => (
             <div
               key={message.id}
-              className={`flex items-start gap-4 ${
+              className={`animate-in slide-in-from-bottom-3 flex items-start gap-4 duration-500 ${
                 message.role === "user" ? "flex-row-reverse" : ""
               }`}
+              style={{ animationDelay: message.animationDelay }}
             >
-              <Avatar className="h-8 w-8 flex-shrink-0">
+              <Avatar className="hover:ring-opacity-50 h-8 w-8 flex-shrink-0 ring-2 ring-transparent ring-offset-2 transition-all duration-300 hover:scale-110">
                 {message.role === "assistant" ? (
-                  <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-sm text-white">
-                    AI
+                  <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 text-sm text-white shadow-lg">
+                    <Bot className="h-4 w-4" />
                   </AvatarFallback>
                 ) : (
-                  <AvatarFallback className="bg-blue-600 text-sm text-white">
-                    U
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-sm text-white shadow-lg">
+                    <User className="h-4 w-4" />
                   </AvatarFallback>
                 )}
               </Avatar>
 
               <div
-                className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} max-w-[75%]`}
+                className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} group max-w-[75%]`}
               >
                 <div
-                  className={`rounded-2xl px-4 py-3 ${
+                  className={`rounded-2xl border px-4 py-3 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md ${
                     message.role === "user"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
+                      ? "border-blue-200 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-100"
+                      : "border-gray-200 bg-gradient-to-br from-gray-50 to-white text-gray-900 dark:border-gray-600 dark:from-gray-700 dark:to-gray-800 dark:text-gray-100"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap">
                     {message.content}
                   </p>
+                  
+                  {/* Message Status Indicator for user messages */}
+                  {message.role === "user" && (
+                    <div className="flex items-center justify-end mt-2">
+                      <div className="flex items-center space-x-1 text-xs text-white/80">
+                        <div className="h-1 w-1 rounded-full bg-green-400 animate-pulse"></div>
+                        <span className="font-medium">Delivered</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Timestamp */}
-                <span className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {formatTimestamp(message.createdAt)}
+                {/* Enhanced timestamp with fade-in on hover */}
+                <span className="mt-2 text-xs font-medium text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:text-gray-400">
+                  {message.formattedTime}
                 </span>
               </div>
             </div>
           ))}
+
+          {/* Sending message indicator */}
+          {sendMessageMutation.isPending && (
+            <div className="flex items-start gap-4 animate-in slide-in-from-bottom-3 duration-300 flex-row-reverse">
+              <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-offset-2 ring-blue-200">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-sm text-white shadow-lg">
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex flex-col items-end max-w-[75%]">
+                <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-400 to-indigo-500 text-white shadow-blue-100 px-4 py-3 opacity-70">
+                  <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap">
+                    {input}
+                  </p>
+                  <div className="flex items-center justify-end mt-2">
+                    <div className="flex items-center space-x-1 text-xs text-white/80">
+                      <div className="h-1 w-1 rounded-full bg-yellow-400 animate-pulse"></div>
+                      <span className="font-medium">Sending...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Typing indicator */}
           {sendMessageMutation.isPending && <TypingIndicator />}
@@ -243,27 +324,44 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* FIXED Input area - Always stays at bottom */}
-      <div className="flex-shrink-0 border-t border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/95">
+      {/* ENHANCED Input area with gradient and animations */}
+      <div className="flex-shrink-0 border-t border-gray-200/50 bg-gradient-to-r from-white/95 via-blue-50/30 to-purple-50/30 p-4 shadow-xl backdrop-blur-md dark:border-gray-700/50 dark:from-gray-900/95 dark:via-gray-800/30 dark:to-gray-900/95">
         <form onSubmit={handleSubmit} className="flex items-center gap-3">
-          <div className="flex-1">
+          <div className="relative flex-1">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about your career path..."
+              placeholder="Ask about your career path, goals, or challenges..."
               autoComplete="off"
               disabled={sendMessageMutation.isPending}
-              className="border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800"
+              className="rounded-xl border-gray-300/50 bg-white/80 py-3 pr-12 pl-4 text-sm font-medium shadow-sm backdrop-blur-sm transition-all duration-300 placeholder:text-gray-400 hover:shadow-md focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 dark:border-gray-600/50 dark:bg-gray-800/80 dark:focus:border-blue-400"
             />
+            {input.trim() && (
+              <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                <Sparkles className="h-4 w-4 animate-pulse text-blue-500" />
+              </div>
+            )}
           </div>
           <Button
             type="submit"
             disabled={sendMessageMutation.isPending || !input.trim()}
-            className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+            className="rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-600 hover:to-indigo-700 hover:shadow-xl focus:ring-4 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
           >
-            <Send className="h-4 w-4" />
+            {sendMessageMutation.isPending ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </Button>
         </form>
+
+        {/* Subtle hint text */}
+        <div className="mt-2 flex items-center justify-center">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            💡 Ask about career transitions, skill development, or industry
+            insights
+          </p>
+        </div>
       </div>
     </div>
   );
