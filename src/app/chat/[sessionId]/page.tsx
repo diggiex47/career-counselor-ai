@@ -4,8 +4,15 @@
 import type { AppRouter } from "~/server/api/root";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import { Send, User, LogOut, Settings, Bot, Sparkles } from "lucide-react";
+import { ThemeToggle } from "~/components/theme-toggle";
 import { useParams } from "next/navigation";
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -64,14 +71,14 @@ const UserProfileDropdown = React.memo(() => {
 
       {isOpen && (
         <>
-          {/* Enhanced backdrop with blur */}
+          {/* Backdrop without blur */}
           <div
-            className="fixed inset-0 z-10 bg-black/5 backdrop-blur-sm"
+            className="fixed inset-0 z-10 bg-black/5"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Enhanced dropdown menu with animations */}
-          <div className="animate-in slide-in-from-top-2 absolute top-full right-0 z-20 mt-2 w-56 rounded-xl border border-gray-200 bg-white/95 py-2 shadow-xl backdrop-blur-md duration-200 dark:border-gray-700 dark:bg-gray-800/95">
+          {/* Solid dropdown menu with animations */}
+          <div className="animate-in slide-in-from-top-2 absolute top-full right-0 z-20 mt-2 w-56 rounded-xl border border-gray-200 bg-white py-2 shadow-xl duration-200 dark:border-gray-700 dark:bg-gray-800">
             <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10">
@@ -162,31 +169,39 @@ export default function ChatPage() {
     utils.chat.getMessages.invalidate({ chatSessionId: sessionId });
   }, [utils.chat.getMessages, sessionId]);
 
-  const handleMutationError = useCallback((error: TRPCClientErrorLike<AppRouter>) => {
-    toast.error("Error sending message", {
-      description: error.message,
-    });
-  }, []);
+  const handleMutationError = useCallback(
+    (error: TRPCClientErrorLike<AppRouter>) => {
+      toast.error("Error sending message", {
+        description: error.message,
+      });
+    },
+    [],
+  );
 
   const sendMessageMutation = api.chat.sendMessage.useMutation({
     onSuccess: handleMutationSuccess,
     onError: handleMutationError,
   });
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    sendMessageMutation.mutate({ chatSessionId: sessionId, content: input });
-    setInput("");
-  }, [input, sendMessageMutation, sessionId]);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!input.trim()) return;
+      sendMessageMutation.mutate({ chatSessionId: sessionId, content: input });
+      setInput("");
+    },
+    [input, sendMessageMutation, sessionId],
+  );
 
   // Performance optimization: Memoize formatted messages to prevent unnecessary re-renders
   const formattedMessages = useMemo(() => {
-    return messages?.map((message, index) => ({
-      ...message,
-      animationDelay: `${index * 100}ms`,
-      formattedTime: formatTimestamp(message.createdAt)
-    })) || [];
+    return (
+      messages?.map((message, index) => ({
+        ...message,
+        animationDelay: `${index * 100}ms`,
+        formattedTime: formatTimestamp(message.createdAt),
+      })) || []
+    );
   }, [messages]);
 
   // Auto-scroll to bottom when messages change
@@ -199,29 +214,22 @@ export default function ChatPage() {
       {/* ENHANCED Header with gradient and animations */}
       <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-200/50 bg-gradient-to-r from-white/95 via-blue-50/30 to-purple-50/30 p-4 shadow-lg backdrop-blur-md dark:border-gray-700/50 dark:from-gray-900/95 dark:via-gray-800/30 dark:to-gray-900/95">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-400 to-pink-400 opacity-30 blur-md"></div>
-              <Avatar className="relative h-10 w-10 shadow-lg ring-2 ring-white/50">
-                <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 font-bold text-white">
-                  <Bot className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <div>
-              <h2 className="bg-gradient-to-r from-gray-900 via-purple-800 to-indigo-800 bg-clip-text text-xl font-bold text-transparent dark:from-white dark:via-purple-200 dark:to-blue-200">
-                AI Career Counselor
-              </h2>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  Ready to help with your career journey
-                </p>
-              </div>
+          <div>
+            <h2 className="bg-gradient-to-r from-gray-900 via-purple-800 to-indigo-800 bg-clip-text text-xl font-bold text-transparent dark:from-white dark:via-purple-200 dark:to-blue-200">
+              AI Career Counselor
+            </h2>
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                Ready to help with your career journey
+              </p>
             </div>
           </div>
         </div>
-        <UserProfileDropdown />
+        <div className="flex items-center space-x-3">
+          <ThemeToggle />
+          <UserProfileDropdown />
+        </div>
       </header>
 
       {/* SCROLLABLE Messages area - Takes remaining space */}
@@ -246,7 +254,7 @@ export default function ChatPage() {
               }`}
               style={{ animationDelay: message.animationDelay }}
             >
-              <Avatar className="hover:ring-opacity-50 h-8 w-8 flex-shrink-0 ring-2 ring-transparent ring-offset-2 transition-all duration-300 hover:scale-110">
+              <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-transparent ring-offset-2 transition-all duration-300">
                 {message.role === "assistant" ? (
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 text-sm text-white shadow-lg">
                     <Bot className="h-4 w-4" />
@@ -262,21 +270,21 @@ export default function ChatPage() {
                 className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} group max-w-[75%]`}
               >
                 <div
-                  className={`rounded-2xl border px-4 py-3 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md ${
+                  className={`rounded-2xl border px-4 py-3 transition-all duration-300 ${
                     message.role === "user"
-                      ? "border-blue-200 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-100"
-                      : "border-gray-200 bg-gradient-to-br from-gray-50 to-white text-gray-900 dark:border-gray-600 dark:from-gray-700 dark:to-gray-800 dark:text-gray-100"
+                      ? "border-blue-200 bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
+                      : "border-gray-200 bg-gradient-to-br from-gray-50 to-white text-gray-900 shadow-sm dark:border-gray-600 dark:from-gray-700 dark:to-gray-800 dark:text-gray-100"
                   }`}
                 >
                   <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap">
                     {message.content}
                   </p>
-                  
+
                   {/* Message Status Indicator for user messages */}
                   {message.role === "user" && (
-                    <div className="flex items-center justify-end mt-2">
+                    <div className="mt-2 flex items-center justify-end">
                       <div className="flex items-center space-x-1 text-xs text-white/80">
-                        <div className="h-1 w-1 rounded-full bg-green-400 animate-pulse"></div>
+                        <div className="h-1 w-1 animate-pulse rounded-full bg-green-400"></div>
                         <span className="font-medium">Delivered</span>
                       </div>
                     </div>
@@ -293,21 +301,21 @@ export default function ChatPage() {
 
           {/* Sending message indicator */}
           {sendMessageMutation.isPending && (
-            <div className="flex items-start gap-4 animate-in slide-in-from-bottom-3 duration-300 flex-row-reverse">
-              <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-offset-2 ring-blue-200">
+            <div className="animate-in slide-in-from-bottom-3 flex flex-row-reverse items-start gap-4 duration-300">
+              <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-blue-200 ring-offset-2">
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-sm text-white shadow-lg">
                   <User className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
-              
-              <div className="flex flex-col items-end max-w-[75%]">
-                <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-400 to-indigo-500 text-white shadow-blue-100 px-4 py-3 opacity-70">
+
+              <div className="flex max-w-[75%] flex-col items-end">
+                <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-400 to-indigo-500 px-4 py-3 text-white opacity-70">
                   <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap">
                     {input}
                   </p>
-                  <div className="flex items-center justify-end mt-2">
+                  <div className="mt-2 flex items-center justify-end">
                     <div className="flex items-center space-x-1 text-xs text-white/80">
-                      <div className="h-1 w-1 rounded-full bg-yellow-400 animate-pulse"></div>
+                      <div className="h-1 w-1 animate-pulse rounded-full bg-yellow-400"></div>
                       <span className="font-medium">Sending...</span>
                     </div>
                   </div>
@@ -334,7 +342,7 @@ export default function ChatPage() {
               placeholder="Ask about your career path, goals, or challenges..."
               autoComplete="off"
               disabled={sendMessageMutation.isPending}
-              className="rounded-xl border-gray-300/50 bg-white/80 py-3 pr-12 pl-4 text-sm font-medium shadow-sm backdrop-blur-sm transition-all duration-300 placeholder:text-gray-400 hover:shadow-md focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 dark:border-gray-600/50 dark:bg-gray-800/80 dark:focus:border-blue-400"
+              className="rounded-xl border-gray-300/50 bg-white/80 py-4 pr-12 pl-4 text-base font-medium shadow-sm backdrop-blur-sm transition-all duration-300 placeholder:text-gray-400 hover:shadow-md focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 dark:border-gray-600/50 dark:bg-gray-800/80 dark:focus:border-blue-400"
             />
             {input.trim() && (
               <div className="absolute top-1/2 right-3 -translate-y-1/2">
@@ -354,14 +362,6 @@ export default function ChatPage() {
             )}
           </Button>
         </form>
-
-        {/* Subtle hint text */}
-        <div className="mt-2 flex items-center justify-center">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            💡 Ask about career transitions, skill development, or industry
-            insights
-          </p>
-        </div>
       </div>
     </div>
   );
