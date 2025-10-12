@@ -19,7 +19,9 @@ interface Provider {
 }
 
 function SignInForm() {
-  const [providers, setProviders] = useState<Record<string, Provider> | null>(null);
+  const [providers, setProviders] = useState<Record<string, Provider> | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,6 +44,8 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
+      console.log("Attempting signin with:", { email: formData.email, callbackUrl });
+      
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
@@ -49,12 +53,20 @@ function SignInForm() {
         redirect: false,
       });
 
+      console.log("Signin result:", result);
+
       if (result?.error) {
+        console.error("Signin error:", result.error);
         toast.error("Invalid email or password");
-      } else if (result?.url) {
-        window.location.href = result.url;
+      } else if (result?.ok) {
+        console.log("Signin successful, redirecting to:", callbackUrl);
+        // Force a hard redirect to ensure proper session setup
+        window.location.href = callbackUrl;
+      } else {
+        toast.error("Sign in failed. Please try again.");
       }
-    } catch {
+    } catch (error) {
+      console.error("Signin exception:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -103,7 +115,7 @@ function SignInForm() {
                       <Button
                         key={provider.name}
                         onClick={() => signIn(provider.id, { callbackUrl })}
-                        className="w-full bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 shadow-lg text-white"
+                        className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-lg hover:from-gray-500 hover:to-gray-600"
                         size="lg"
                       >
                         {provider.name === "GitHub" && (
@@ -129,11 +141,14 @@ function SignInForm() {
               <form onSubmit={handleCredentialsSignIn} className="space-y-4">
                 {/* Email Field */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="mb-2 block text-sm font-medium text-gray-700"
+                  >
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <Input
                       id="email"
                       name="email"
@@ -141,19 +156,26 @@ function SignInForm() {
                       required
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="pl-10 shadow-sm"
+                      className="border-gray-300 !bg-white pl-10 !text-gray-900 shadow-sm"
                       placeholder="Enter your email"
+                      style={{
+                        color: "#111827 !important",
+                        backgroundColor: "#ffffff !important",
+                      }}
                     />
                   </div>
                 </div>
 
                 {/* Password Field */}
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="mb-2 block text-sm font-medium text-gray-700"
+                  >
                     Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <Input
                       id="password"
                       name="password"
@@ -161,13 +183,17 @@ function SignInForm() {
                       required
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="pl-10 pr-10 shadow-sm"
+                      className="border-gray-300 !bg-white pr-10 pl-10 !text-gray-900 shadow-sm"
                       placeholder="Enter your password"
+                      style={{
+                        color: "#111827 !important",
+                        backgroundColor: "#ffffff !important",
+                      }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -182,7 +208,7 @@ function SignInForm() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 shadow-lg text-white"
+                  className="w-full bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-lg hover:from-blue-500 hover:to-blue-600"
                   size="lg"
                 >
                   {isLoading ? (
@@ -215,14 +241,16 @@ function SignInForm() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <SignInForm />
     </Suspense>
   );

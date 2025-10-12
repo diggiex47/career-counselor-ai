@@ -147,8 +147,9 @@ export default function SignUpPage() {
                       required
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="pl-10 shadow-sm"
+                      className="pl-10 shadow-sm !text-gray-900 !bg-white border-gray-300"
                       placeholder="Enter your full name"
+                      style={{ color: '#111827 !important', backgroundColor: '#ffffff !important' }}
                     />
                   </div>
                 </div>
@@ -170,8 +171,9 @@ export default function SignUpPage() {
                       required
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="pl-10 shadow-sm"
+                      className="pl-10 shadow-sm !text-gray-900 !bg-white border-gray-300"
                       placeholder="Enter your email"
+                      style={{ color: '#111827 !important', backgroundColor: '#ffffff !important' }}
                     />
                   </div>
                 </div>
@@ -193,9 +195,10 @@ export default function SignUpPage() {
                       required
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="pr-10 pl-10 shadow-sm"
+                      className="pr-10 pl-10 shadow-sm !text-gray-900 !bg-white border-gray-300"
                       placeholder="Create a strong password"
                       minLength={8}
+                      style={{ color: '#111827 !important', backgroundColor: '#ffffff !important' }}
                     />
                     <button
                       type="button"
@@ -231,15 +234,16 @@ export default function SignUpPage() {
                       required
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className={`pr-10 pl-10 shadow-sm ${
+                      className={`pr-10 pl-10 shadow-sm !text-gray-900 !bg-white ${
                         formData.confirmPassword &&
                         formData.password !== formData.confirmPassword
                           ? "border-red-300 focus:border-red-500 focus:ring-red-500"
                           : formData.confirmPassword &&
                               formData.password === formData.confirmPassword
                             ? "border-green-300 focus:border-green-500 focus:ring-green-500"
-                            : ""
+                            : "border-gray-300"
                       }`}
+                      style={{ color: '#111827 !important', backgroundColor: '#ffffff !important' }}
                       placeholder="Confirm your password"
                       minLength={8}
                     />
