@@ -16,7 +16,7 @@ model Account {
     type                     String
     provider                 String
     providerAccountId        String
-    refresh_token            String?
+    refresh_token            String?  
     access_token             String?
     expires_at               Int?
     token_type               String?
@@ -43,11 +43,12 @@ model User {
     email         String?   @unique
     emailVerified DateTime?
     image         String?
+    password      String?   // For credential-based authentication
     accounts      Account[]
     sessions      Session[]
 
     // A user can have many chat sessions
-    chatSessions ChatSession[] // 👈 RENAMED for clarity: chatSessions instead of chatSession
+    chatSessions ChatSession[] 
 }
 
 model VerificationToken {

@@ -50,14 +50,23 @@ export default async function HomePage() {
                 </Link>
               </>
             ) : (
-              <Link
-                href="/api/auth/signin"
-                className="group rounded-full bg-purple-600 px-10 py-4 font-semibold text-white no-underline shadow-lg transition-all hover:scale-105 hover:bg-purple-700 hover:shadow-xl focus:ring-4 focus:ring-purple-300 focus:outline-none"
-              >
-                <span className="flex items-center gap-2">
-                  ✨ Start Your Career Journey
-                </span>
-              </Link>
+              <>
+                <Link
+                  href="/auth/signup"
+                  className="group rounded-full bg-purple-600 px-10 py-4 font-semibold text-white no-underline shadow-lg transition-all hover:scale-105 hover:bg-purple-700 hover:shadow-xl focus:ring-4 focus:ring-purple-300 focus:outline-none"
+                >
+                  <span className="flex items-center gap-2">
+                    ✨ Start Your Career Journey
+                  </span>
+                </Link>
+
+                <Link
+                  href="/auth/signin"
+                  className="rounded-full border-2 border-purple-300 px-8 py-3 font-semibold text-purple-700 no-underline shadow-md transition hover:border-purple-400 hover:text-purple-900 hover:shadow-lg"
+                >
+                  Sign In
+                </Link>
+              </>
             )}
           </div>
 

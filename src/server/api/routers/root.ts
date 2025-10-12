@@ -1,5 +1,6 @@
 import { chatRouter } from "./chat";
 import { sessionRouter } from "./session";
+import { userRouter } from "./user";
 import { createTRPCRouter } from "~/server/api/trpc";
 
 /** 
@@ -11,6 +12,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
     chat: chatRouter,
     session: sessionRouter,
+    user: userRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -3,7 +3,7 @@
 
 import type { AppRouter } from "~/server/api/root";
 import type { TRPCClientErrorLike } from "@trpc/client";
-import { Send, User, LogOut, Settings, Bot, Sparkles } from "lucide-react";
+import { Send, User, LogOut, Settings, Bot, Sparkles, UserPlus } from "lucide-react";
 import "../chat.css";
 import { useParams } from "next/navigation";
 import React, {
@@ -114,6 +114,15 @@ const UserProfileDropdown = React.memo(() => {
               >
                 <Settings className="mr-3 h-4 w-4" />
                 <span className="font-medium">Settings</span>
+              </Link>
+
+              <Link
+                href="/auth/signin"
+                className="flex items-center px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-blue-400"
+                onClick={() => setIsOpen(false)}
+              >
+                <UserPlus className="mr-3 h-4 w-4" />
+                <span className="font-medium">Switch Account</span>
               </Link>
 
               <div className="mt-1 border-t border-gray-200 pt-1 dark:border-gray-700">
