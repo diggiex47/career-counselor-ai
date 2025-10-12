@@ -33,8 +33,8 @@ export const authConfig = {
   providers: [
     // GitHub OAuth Provider
     GitHubProvider({
-      clientId: env.GITHUB_CLIENT_ID as string,
-      clientSecret: env.GITHUB_CLIENT_SECRET as string,
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
     }),
     // Credentials Provider for email/password
     CredentialsProvider({
@@ -54,7 +54,7 @@ export const authConfig = {
           },
         });
 
-        if (!user || !user.password) {
+        if (!user?.password) {
           return null;
         }
 

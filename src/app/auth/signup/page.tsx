@@ -8,14 +8,12 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { toast } from "sonner";
 import {
-  Bot,
   Github,
   Eye,
   EyeOff,
   User,
   Mail,
   Lock,
-  Sparkles,
 } from "lucide-react";
 import "../auth.css";
 
@@ -50,7 +48,7 @@ export default function SignUpPage() {
     }
 
     try {
-      const { confirmPassword, ...submitData } = formData; // Remove confirmPassword from submission
+      const { confirmPassword: _, ...submitData } = formData; // Remove confirmPassword from submission
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
@@ -67,7 +65,7 @@ export default function SignUpPage() {
       } else {
         toast.error(data.error || "Failed to create account");
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

@@ -32,12 +32,12 @@ export class AIService {
   private readonly model = "gemini-2.0-flash-exp";
 
   constructor() {
-    this.apiKey = env.GEMINI_API_KEY || "";
+    this.apiKey = env.GEMINI_API_KEY ?? "";
   }
 
   async generateResponse(
     messages: AIMessage[],
-    context?: ConversationContext,
+    _context?: ConversationContext,
   ): Promise<AIResponse> {
     const startTime = Date.now();
 
@@ -96,13 +96,20 @@ Remember: You're here to help users achieve their professional goals and build f
         throw new Error(`Gemini API error: ${response.status} - ${errorData}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as {
+        candidates?: Array<{
+          content?: {
+            parts?: Array<{ text?: string }>;
+          };
+        }>;
+        usageMetadata?: {
+          totalTokenCount?: number;
+        };
+      };
       const processingTime = Date.now() - startTime;
 
       if (
-        !data.candidates ||
-        !data.candidates[0] ||
-        !data.candidates[0].content
+        !data.candidates?.[0]?.content?.parts?.[0]?.text
       ) {
         throw new Error("Invalid response format from Gemini API");
       }
@@ -168,7 +175,13 @@ Remember: You're here to help users achieve their professional goals and build f
       );
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as {
+          candidates?: Array<{
+            content?: {
+              parts?: Array<{ text?: string }>;
+            };
+          }>;
+        };
         const title = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (title && title.length > 0) {
           return title.replace(/['"]/g, ""); // Remove quotes if present

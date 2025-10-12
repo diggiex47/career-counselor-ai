@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "~/server/db";
 import { z } from "zod";
@@ -11,7 +12,7 @@ const signupSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as unknown;
     const { name, email, password } = signupSchema.parse(body);
 
     // Check if user already exists

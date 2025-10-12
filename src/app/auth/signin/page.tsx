@@ -1,14 +1,14 @@
 "use client";
 
 import { signIn, getProviders } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { toast } from "sonner";
 import "../auth.css";
-import { Github, Bot, Sparkles, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Github, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 interface Provider {
   id: string;
@@ -18,7 +18,7 @@ interface Provider {
   callbackUrl: string;
 }
 
-export default function SignInPage() {
+function SignInForm() {
   const [providers, setProviders] = useState<Record<string, Provider> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -27,14 +27,14 @@ export default function SignInPage() {
     password: "",
   });
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/chat";
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/chat";
 
   useEffect(() => {
     const fetchProviders = async () => {
       const res = await getProviders();
       setProviders(res);
     };
-    fetchProviders();
+    void fetchProviders();
   }, []);
 
   const handleCredentialsSignIn = async (e: React.FormEvent) => {
@@ -54,7 +54,7 @@ export default function SignInPage() {
       } else if (result?.url) {
         window.location.href = result.url;
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -115,7 +115,7 @@ export default function SignInPage() {
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+                    <span className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-white px-2 text-gray-500">
@@ -196,7 +196,7 @@ export default function SignInPage() {
               {/* Sign Up Link */}
               <div className="text-center">
                 <p className="text-sm text-gray-600">
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <Link
                     href="/auth/signup"
                     className="font-medium text-purple-600 hover:text-purple-500"
@@ -205,14 +205,25 @@ export default function SignInPage() {
                   </Link>
                 </p>
               </div>
-
-
             </div>
           </div>
-
-
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <SignInForm />
+    </Suspense>
   );
 }
