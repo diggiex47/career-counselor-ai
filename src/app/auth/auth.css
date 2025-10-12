@@ -1,0 +1,42 @@
+/* Authentication page styles */
+
+/* Sign-in page background */
+.auth-background {
+  background: rgb(255 255 255);
+}
+
+/* Auth card styles */
+.auth-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+/* Auth button animations */
+.auth-button {
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Feature list animations */
+.auth-feature {
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: slideInFeature 0.6s ease-out forwards;
+}
+
+.auth-feature:nth-child(1) { animation-delay: 0.1s; }
+.auth-feature:nth-child(2) { animation-delay: 0.2s; }
+.auth-feature:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes slideInFeature {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -6,26 +6,28 @@ export default async function HomePage() {
   const session = await auth();
 
   return (
-    <main className={`flex min-h-screen flex-col items-center justify-center text-white transition-all duration-1000 ${
-      session 
-        ? "bg-gradient-to-br from-rose-500 via-pink-500 to-red-400" // Enhanced gradient with more colors when signed in
-        : "bg-gradient-to-b from-[#2e026d] to-[#15162c]" // Original purple when not signed in
-    }`}>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white text-gray-900 transition-all duration-1000">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
+        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-[5rem]">
           AI Career
-          <span className={session ? "text-amber-200" : "text-[hsl(280,100%,70%)]"}> Counselor</span>
+          <span className="text-purple-600"> Counselor</span>
         </h1>
 
         <div className="flex flex-col items-center gap-6">
-          <p className="text-center text-xl text-white/80 max-w-2xl leading-relaxed">
+          <p className="max-w-2xl text-center text-xl leading-relaxed text-gray-600">
             {session && (
-              <span className="block mb-4 text-lg">
-                👋 Welcome back, <span className="font-semibold text-slate-800">{session.user?.name}</span>!
+              <span className="mb-4 block text-lg">
+                👋 Welcome back,{" "}
+                <span className="font-semibold text-gray-900">
+                  {session.user?.name}
+                </span>
+                !
               </span>
             )}
-            I'm here to help you navigate your career journey. Whether you're exploring new opportunities, 
-            facing workplace challenges, or planning your next move, let's have a conversation about your professional goals.
+            I'm here to help you navigate your career journey. Whether you're
+            exploring new opportunities, facing workplace challenges, or
+            planning your next move, let's have a conversation about your
+            professional goals.
           </p>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
@@ -33,16 +35,16 @@ export default async function HomePage() {
               <>
                 <Link
                   href="/chat"
-                  className="group rounded-full bg-white/10 px-10 py-4 font-semibold text-white no-underline transition-all hover:bg-white/20 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/30 shadow-lg hover:shadow-xl"
+                  className="group rounded-full bg-purple-600 px-10 py-4 font-semibold text-white no-underline shadow-lg transition-all hover:scale-105 hover:bg-purple-700 hover:shadow-xl focus:ring-4 focus:ring-purple-300 focus:outline-none"
                 >
                   <span className="flex items-center gap-2">
                     💬 Continue Our Conversation
                   </span>
                 </Link>
-                
+
                 <Link
                   href="/api/auth/signout"
-                  className="rounded-full border-2 border-white/30 px-8 py-3 font-semibold text-white/80 no-underline transition hover:border-white/50 hover:text-white shadow-md hover:shadow-lg"
+                  className="rounded-full border-2 border-gray-300 px-8 py-3 font-semibold text-gray-700 no-underline shadow-md transition hover:border-gray-400 hover:text-gray-900 hover:shadow-lg"
                 >
                   Sign out
                 </Link>
@@ -50,7 +52,7 @@ export default async function HomePage() {
             ) : (
               <Link
                 href="/api/auth/signin"
-                className="group rounded-full bg-white/10 px-10 py-4 font-semibold text-white no-underline transition-all hover:bg-white/20 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/30 shadow-lg hover:shadow-xl"
+                className="group rounded-full bg-purple-600 px-10 py-4 font-semibold text-white no-underline shadow-lg transition-all hover:scale-105 hover:bg-purple-700 hover:shadow-xl focus:ring-4 focus:ring-purple-300 focus:outline-none"
               >
                 <span className="flex items-center gap-2">
                   ✨ Start Your Career Journey
@@ -61,10 +63,11 @@ export default async function HomePage() {
 
           {!session && (
             <div className="mt-8 text-center">
-              <p className="text-white/60 text-sm mb-4">
-                Join me for a personal, one-on-one conversation about your career
+              <p className="mb-4 text-sm text-gray-500">
+                Join me for a personal, one-on-one conversation about your
+                career
               </p>
-              <div className="flex items-center justify-center gap-6 text-white/40 text-xs">
+              <div className="flex items-center justify-center gap-6 text-xs text-gray-400">
                 <span className="flex items-center gap-1">
                   🔒 Private & Secure
                 </span>

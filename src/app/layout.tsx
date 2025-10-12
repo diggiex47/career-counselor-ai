@@ -6,7 +6,6 @@ import { SessionProvider } from "next-auth/react";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "~/components/theme-provider";
 import { ErrorBoundary } from "~/components/error-boundary";
 import { PerformanceMonitor } from "~/components/performance-monitor";
 
@@ -27,17 +26,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
       <body>
-        <ThemeProvider defaultTheme="system">
-          <ErrorBoundary>
-            <SessionProvider>
-              <TRPCReactProvider>
-                {children}
-                <Toaster />
-                <PerformanceMonitor />
-              </TRPCReactProvider>
-            </SessionProvider>
-          </ErrorBoundary>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <SessionProvider>
+            <TRPCReactProvider>
+              {children}
+              <Toaster />
+              <PerformanceMonitor />
+            </TRPCReactProvider>
+          </SessionProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

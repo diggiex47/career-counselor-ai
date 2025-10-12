@@ -4,6 +4,7 @@ import { signIn, getProviders } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
+import "../auth.css";
 import { Github, Bot, Sparkles } from "lucide-react";
 
 interface Provider {

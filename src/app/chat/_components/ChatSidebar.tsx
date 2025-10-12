@@ -29,7 +29,14 @@ export function ChatSidebar() {
 
   const createSessionMutation = api.session.createSession.useMutation({
     onSuccess: (newSession) => {
+      // Invalidate sessions cache to refresh the sidebar
+      utils.session.getAllSessions.invalidate();
       router.push(`/chat/${newSession.id}`);
+    },
+    onError: (error) => {
+      toast.error("Failed to create new chat session", {
+        description: error.message,
+      });
     },
   });
 
@@ -62,6 +69,7 @@ export function ChatSidebar() {
       setEditingName("");
     },
     onError: (error) => {
+      console.error("Update session error:", error);
       toast.error("Failed to update session name", {
         description: error.message,
       });
