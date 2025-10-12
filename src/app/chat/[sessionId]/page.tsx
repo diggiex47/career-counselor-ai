@@ -3,7 +3,15 @@
 
 import type { AppRouter } from "~/server/api/root";
 import type { TRPCClientErrorLike } from "@trpc/client";
-import { Send, User, LogOut, Settings, Bot, Sparkles, UserPlus } from "lucide-react";
+import {
+  Send,
+  User,
+  LogOut,
+  Settings,
+  Bot,
+  Sparkles,
+  UserPlus,
+} from "lucide-react";
 import "../chat.css";
 import { useParams } from "next/navigation";
 import React, {

@@ -5,7 +5,7 @@ import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
-import { env } from "~/env"; // 👈 1. IMPORT the env object
+import { env } from "~/env"; //  1. IMPORT the env object
 import { db } from "~/server/db";
 
 /**
@@ -41,7 +41,7 @@ export const authConfig = {
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -63,7 +63,7 @@ export const authConfig = {
 
           const isPasswordValid = await bcrypt.compare(
             credentials.password as string,
-            user.password
+            user.password,
           );
 
           if (!isPasswordValid) {
