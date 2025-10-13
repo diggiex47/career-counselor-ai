@@ -2,7 +2,7 @@
 
 > **Assignment Completion Report & Technical Implementation Overview**  
 > **Developer**: Digvijay Singh 
-
+> **🔗 Live Demo**: https://career-counselor-ai-one.vercel.app/
 ---
 
 ## 🎯 **Assignment Requirements Fulfillment**
