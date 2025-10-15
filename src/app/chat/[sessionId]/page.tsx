@@ -27,31 +27,29 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
+import { TypewriterText } from "~/components/typewriter-text";
 
 import Link from "next/link";
 
-// Enhanced typing indicator with smooth animations - Memoized for performance
+// Minimal typing indicator - Memoized for performance
 const TypingIndicator = React.memo(() => {
   return (
     <div className="animate-in slide-in-from-left-5 flex items-start gap-4 duration-500">
       <Avatar className="shadow-md transition-all duration-300 hover:shadow-lg">
-        <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 text-white shadow-inner">
+        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-inner">
           <Bot className="h-4 w-4" />
         </AvatarFallback>
       </Avatar>
-      <div className="max-w-[75%] rounded-2xl border border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 shadow-lg dark:border-gray-600 dark:from-gray-700 dark:to-gray-800 dark:shadow-gray-900/20">
-        <div className="flex items-center space-x-3">
+      <div className="max-w-[75%] rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-md">
+        <div className="flex items-center space-x-2">
           <div className="flex space-x-1">
-            <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-purple-500 [animation-delay:-0.3s]"></div>
-            <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-pink-500 [animation-delay:-0.15s]"></div>
-            <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-indigo-500"></div>
+            <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
+            <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
+            <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
           </div>
-          <div className="flex items-center space-x-1">
-            <Sparkles className="h-3 w-3 animate-pulse text-purple-500" />
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-              AI is thinking...
-            </span>
-          </div>
+          <span className="text-xs font-medium text-gray-500">
+            Thinking...
+          </span>
         </div>
       </div>
     </div>
@@ -71,7 +69,7 @@ const UserProfileDropdown = React.memo(() => {
         className="group flex items-center space-x-2 rounded-full p-1 shadow-sm transition-all duration-200 hover:scale-105 hover:bg-gray-100 hover:shadow-md dark:hover:bg-gray-800"
       >
         <Avatar className="h-8 w-8 shadow-md transition-all duration-200 group-hover:shadow-lg">
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-semibold text-white shadow-inner">
+          <AvatarFallback className="bg-gradient-to-br from-rose-400 to-rose-500 text-sm font-semibold text-white shadow-inner">
             <User className="h-4 w-4" />
           </AvatarFallback>
         </Avatar>
@@ -90,7 +88,7 @@ const UserProfileDropdown = React.memo(() => {
             <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10 shadow-md">
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 font-semibold text-white shadow-inner">
+                  <AvatarFallback className="bg-gradient-to-br from-rose-400 to-rose-500 font-semibold text-white shadow-inner">
                     <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
@@ -153,7 +151,7 @@ const UserProfileDropdown = React.memo(() => {
 
 UserProfileDropdown.displayName = "UserProfileDropdown";
 
-// Format timestamp - Memoized for performance
+// Format timestamp - Always show relative time
 function formatTimestamp(date: Date) {
   const now = new Date();
   const messageDate = new Date(date);
@@ -161,17 +159,34 @@ function formatTimestamp(date: Date) {
     (now.getTime() - messageDate.getTime()) / (1000 * 60),
   );
 
+  // Less than 1 minute
   if (diffInMinutes < 1) return "Just now";
+  
+  // Less than 1 hour
   if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  
+  // Less than 24 hours
   if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-
-  return messageDate.toLocaleDateString();
+  
+  // Less than 30 days
+  const diffInDays = Math.floor(diffInMinutes / 1440);
+  if (diffInDays < 30) return `${diffInDays}d ago`;
+  
+  // Less than 12 months
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) return `${diffInMonths}mo ago`;
+  
+  // 12 months or more
+  const diffInYears = Math.floor(diffInMonths / 12);
+  return `${diffInYears}y ago`;
 }
 
 export default function ChatPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const utils = api.useUtils();
 
   // Query to fetch messages
@@ -197,8 +212,20 @@ export default function ChatPage() {
     [],
   );
 
+  const [streamingMessageId, setStreamingMessageId] = useState<string>("");
+  const [streamingContent, setStreamingContent] = useState<string>("");
+  const [isStreaming, setIsStreaming] = useState(false);
+
   const sendMessageMutation = api.chat.sendMessage.useMutation({
-    onSuccess: handleMutationSuccess,
+    onSuccess: (data) => {
+      if (data.aiMessage) {
+        setStreamingMessageId(data.aiMessage.id);
+        setStreamingContent(data.aiMessage.content);
+        setIsStreaming(true);
+      }
+      // Immediately refresh to show user message, but don't show AI message yet
+      utils.chat.getMessages.invalidate({ chatSessionId: sessionId });
+    },
     onError: handleMutationError,
   });
 
@@ -206,6 +233,12 @@ export default function ChatPage() {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (!input.trim()) return;
+      
+      // Clear any previous streaming
+      setStreamingMessageId("");
+      setStreamingContent("");
+      setIsStreaming(false);
+      
       sendMessageMutation.mutate({ chatSessionId: sessionId, content: input });
       setInput("");
     },
@@ -223,10 +256,27 @@ export default function ChatPage() {
     );
   }, [messages]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change or during streaming
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, sendMessageMutation.isPending]);
+    if (shouldAutoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, sendMessageMutation.isPending, streamingContent, shouldAutoScroll]);
+
+  // Handle user scroll detection
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+      setShouldAutoScroll(isAtBottom);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="flex h-screen flex-col">
@@ -250,6 +300,7 @@ export default function ChatPage() {
 
       {/* SCROLLABLE Messages area - Takes remaining space */}
       <div
+        ref={messagesContainerRef}
         className="relative z-10 flex-1 overflow-y-auto shadow-inner"
         style={{ height: "calc(100vh - 140px)" }} // Explicit height calculation
       >
@@ -262,78 +313,114 @@ export default function ChatPage() {
             </div>
           )}
 
-          {formattedMessages.map((message) => (
-            <div
-              key={message.id}
-              className={`animate-in slide-in-from-bottom-3 relative z-10 flex items-start gap-4 duration-500 ${
-                message.role === "user" ? "flex-row-reverse" : ""
-              }`}
-              style={{ animationDelay: message.animationDelay }}
-            >
-              <Avatar className="relative z-10 h-8 w-8 flex-shrink-0 shadow-md transition-all duration-300 hover:shadow-lg">
-                {message.role === "assistant" ? (
-                  <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 text-sm text-white shadow-inner">
-                    <Bot className="h-4 w-4" />
-                  </AvatarFallback>
-                ) : (
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-sm text-white shadow-inner">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                )}
-              </Avatar>
+          {formattedMessages.map((message) => {
+            // Skip showing the message if it's currently being streamed
+            if (isStreaming && message.id === streamingMessageId) {
+              return null;
+            }
 
+            return (
               <div
-                className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} group max-w-[75%]`}
+                key={message.id}
+                className={`animate-in slide-in-from-bottom-3 relative z-10 flex items-start gap-4 duration-500 ${
+                  message.role === "user" ? "flex-row-reverse" : ""
+                }`}
+                style={{ animationDelay: message.animationDelay }}
               >
-                <div
-                  className={`rounded-2xl border px-4 py-3 transition-all duration-300 ${
-                    message.role === "user"
-                      ? "border-purple-200 bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg"
-                      : "border-gray-200 bg-white text-gray-900 shadow-md"
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap">
-                    {message.content}
-                  </p>
-
-                  {/* Message Status Indicator for user messages */}
-                  {message.role === "user" && (
-                    <div className="mt-2 flex items-center justify-end">
-                      <div className="flex items-center space-x-1 text-xs text-white/80">
-                        <div className="h-1 w-1 animate-pulse rounded-full bg-green-400"></div>
-                        <span className="font-medium">Delivered</span>
-                      </div>
-                    </div>
+                <Avatar className="relative z-10 h-8 w-8 flex-shrink-0 shadow-md transition-all duration-300 hover:shadow-lg">
+                  {message.role === "assistant" ? (
+                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-blue-600 text-sm text-white shadow-inner">
+                      <Bot className="h-4 w-4" />
+                    </AvatarFallback>
+                  ) : (
+                    <AvatarFallback className="bg-gradient-to-br from-rose-400 to-rose-500 text-sm text-white shadow-inner">
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
                   )}
+                </Avatar>
+
+                <div
+                  className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} group max-w-[75%]`}
+                >
+                  <div
+                    className={`rounded-2xl border px-4 py-3 transition-all duration-300 ${
+                      message.role === "user"
+                        ? "border-teal-200 bg-gradient-to-br from-teal-600 to-emerald-600 text-white shadow-lg"
+                        : "border-gray-200 bg-white text-gray-900 shadow-md"
+                    }`}
+                  >
+                    <div className="text-sm leading-relaxed font-medium">
+                      {message.role === "assistant" ? (
+                        <div 
+                          className="whitespace-pre-wrap space-y-2"
+                          dangerouslySetInnerHTML={{
+                            __html: message.content
+                              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                              .replace(/## (.*?)$/gm, '<h3 class="text-base font-semibold mt-4 mb-3 text-gray-800 border-b border-gray-200 pb-1">$1</h3>')
+                              // Main numbered points (level 1)
+                              .replace(/^(\d+)\.\s(.+)$/gm, '<div class="flex items-start gap-3 mb-3 pl-0"><span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">$1</span><div class="flex-1 leading-relaxed">$2</div></div>')
+                              // Sub-points with asterisks (level 2)
+                              .replace(/^\*\s(.+)$/gm, '<div class="flex items-start gap-3 mb-2 pl-6"><span class="flex-shrink-0 w-2 h-2 bg-gray-400 rounded-full mt-2"></span><div class="flex-1 leading-relaxed">$1</div></div>')
+                              // Sub-points with bullets (level 2)
+                              .replace(/^•\s(.+)$/gm, '<div class="flex items-start gap-3 mb-2 pl-6"><span class="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2"></span><div class="flex-1 leading-relaxed">$1</div></div>')
+                              // Process arrows (level 2)
+                              .replace(/^→\s(.+)$/gm, '<div class="flex items-start gap-3 mb-2 pl-6"><span class="flex-shrink-0 text-green-500 font-bold mt-0.5">→</span><div class="flex-1 leading-relaxed">$1</div></div>')
+                              // Important actions (level 2)
+                              .replace(/^▶\s(.+)$/gm, '<div class="flex items-start gap-3 mb-2 pl-6"><span class="flex-shrink-0 text-purple-500 font-bold mt-0.5">▶</span><div class="flex-1 leading-relaxed">$1</div></div>')
+                              // Simple dashes (level 3)
+                              .replace(/^-\s(.+)$/gm, '<div class="flex items-start gap-3 mb-1 pl-12"><span class="flex-shrink-0 text-gray-500 mt-0.5">-</span><div class="flex-1 leading-relaxed">$1</div></div>')
+                              .replace(/\n\n/g, '<br class="mb-2">')
+                          }}
+                        />
+                      ) : (
+                        <span className="whitespace-pre-wrap">{message.content}</span>
+                      )}
+                    </div>
+
+                    {/* Message Status Indicator for user messages */}
+                    {message.role === "user" && (
+                      <div className="mt-2 flex items-center justify-end">
+                        <div className="flex items-center space-x-1 text-xs text-white/80">
+                          <div className="h-1 w-1 animate-pulse rounded-full bg-green-400"></div>
+                          <span className="font-medium">Delivered</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Enhanced timestamp with fade-in on hover */}
+                  <span className="mt-2 text-xs font-medium text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:text-gray-400">
+                    {message.formattedTime}
+                  </span>
                 </div>
-
-                {/* Enhanced timestamp with fade-in on hover */}
-                <span className="mt-2 text-xs font-medium text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:text-gray-400">
-                  {message.formattedTime}
-                </span>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
-          {/* Sending message indicator */}
-          {sendMessageMutation.isPending && (
-            <div className="animate-in slide-in-from-bottom-3 relative z-10 flex flex-row-reverse items-start gap-4 duration-300">
-              <Avatar className="relative z-10 h-8 w-8 flex-shrink-0 shadow-md">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-sm text-white shadow-inner">
-                  <User className="h-4 w-4" />
+          {/* Streaming AI response */}
+          {isStreaming && streamingContent && (
+            <div className="animate-in slide-in-from-left-5 flex items-start gap-4 duration-500">
+              <Avatar className="relative z-10 h-8 w-8 flex-shrink-0 shadow-md transition-all duration-300 hover:shadow-lg">
+                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-blue-600 text-sm text-white shadow-inner">
+                  <Bot className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
 
-              <div className="flex max-w-[75%] flex-col items-end">
-                <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-400 to-indigo-500 px-4 py-3 text-white opacity-70 shadow-lg">
-                  <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap">
-                    {input}
-                  </p>
-                  <div className="mt-2 flex items-center justify-end">
-                    <div className="flex items-center space-x-1 text-xs text-white/80">
-                      <div className="h-1 w-1 animate-pulse rounded-full bg-yellow-400"></div>
-                      <span className="font-medium">Sending...</span>
-                    </div>
+              <div className="flex flex-col items-start group max-w-[75%]">
+                <div className="rounded-2xl border border-gray-200 bg-white text-gray-900 shadow-md px-4 py-3 transition-all duration-300">
+                  <div className="text-sm leading-relaxed font-medium space-y-2">
+                    <TypewriterText 
+                      text={streamingContent} 
+                      speed={3}
+                      onComplete={() => {
+                        setIsStreaming(false);
+                        setStreamingMessageId("");
+                        setStreamingContent("");
+                        // Refresh messages to show the final version and update sidebar
+                        utils.chat.getMessages.invalidate({ chatSessionId: sessionId });
+                        utils.session.getAllSessions.invalidate();
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -370,7 +457,7 @@ export default function ChatPage() {
           <Button
             type="submit"
             disabled={sendMessageMutation.isPending || !input.trim()}
-            className="rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 shadow-xl transition-all duration-300 hover:scale-105 hover:from-blue-600 hover:to-indigo-700 hover:shadow-2xl focus:ring-4 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-4 py-3 shadow-xl transition-all duration-300 hover:scale-105 hover:from-red-600 hover:to-red-700 hover:shadow-2xl focus:ring-4 focus:ring-red-500/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
           >
             {sendMessageMutation.isPending ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>

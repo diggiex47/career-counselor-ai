@@ -25,7 +25,7 @@ export const chatRouter = createTRPCRouter({
   sendMessage: protectedProcedure
     .input(z.object({ chatSessionId: z.string(), content: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Save the user's message to the database
+      // Save the user's message to the database immediately
       const userMessage = await ctx.db.message.create({
         data: {
           chatSessionId: input.chatSessionId,

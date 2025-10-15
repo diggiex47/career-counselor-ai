@@ -11,7 +11,8 @@ import { PerformanceMonitor } from "~/components/performance-monitor";
 
 export const metadata: Metadata = {
   title: "AI Career Counselor - Your Personal Career Guide",
-  description: "Get personalized career guidance with AI-powered insights. Explore opportunities, plan your professional journey, and achieve your career goals.",
+  description:
+    "Get personalized career guidance with AI-powered insights. Explore opportunities, plan your professional journey, and achieve your career goals.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
